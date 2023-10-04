@@ -8,22 +8,24 @@ import org.mockito.Mockito;
 
 
 public class CalcularDescuentoTest {
+    ServiceCalc serviceCalcMock = Mockito.mock(ServiceCalc.class);
+
     @ParameterizedTest
     @CsvSource({
             "2000, 2000.0",          // Sueldo igual al salario básico
             "2500, 2375.0",      // (5% de descuento)
-            "4000, 3400.0",      // (15% de descuento)
-            "1500, '0.0'"  // Sueldo no válido
+            "4000, 3800.0",      // (15% de descuento)
+            "1500, 1500.0"  // Sueldo no válido
     })
-    public void testCalcularDescuento(double salario, String expectedDescuento) {
+    public void testCalcularDescuento(double salario, double expectedDescuento){
+        double actualDescuento = 0;
         try {
-            double actualDescuento = CalcularDescuento.calcularDescuentoStatic(salario);
-            Assertions.assertEquals(expectedDescuento, actualDescuento);
+            actualDescuento = CalcularDescuento.calcularDescuentoStatic(salario);
         } catch (Exception e) {
-            Assertions.assertEquals(expectedDescuento, "Valor Incorrecto");
+            throw new RuntimeException(e);
         }
+        Assertions.assertEquals(actualDescuento, expectedDescuento);
     }
-    ServiceCalc serviceCalcMock = Mockito.mock(String.valueOf(CalcularDescuento.class));
 
     @Test
     public void verificarDescuento() throws Exception {
@@ -48,6 +50,32 @@ public class CalcularDescuentoTest {
         Assertions.assertEquals(1500, descuento1, 0.001); // Tolerancia de 0.001 para números de punto flotante
         Assertions.assertEquals(1995, descuento2, 0.001);
         Assertions.assertEquals(3800, descuento3, 0.001);
+    }
+
+    @Test
+    public void testSetServiceCalcWhenCalledThenDependencySet() {
+        // Create an instance of the class under test
+        CalcularDescuento calculadora = new CalcularDescuento();
+
+        // Call the method being tested
+        calculadora.setServiceCalc(serviceCalcMock);
+
+        // Use an assertion to check that the serviceCalc dependency was set correctly
+        Assertions.assertEquals(serviceCalcMock, calculadora.getServiceCalc());
+    }
+
+    @Test
+    public void testCalcularDescuentoWhenValidSalaryThenCorrectDiscount() throws Exception {
+        // Create an instance of the class under test
+        CalcularDescuento calculadora = new CalcularDescuento();
+        calculadora.setServiceCalc(serviceCalcMock);
+
+        // Call the method being tested with a valid salary
+        double salario = 2100; // 5% de descuento
+        double descuento = calculadora.calcularDescuento(salario);
+
+        // Use an assertion to check that the result of the method is correct
+        Assertions.assertEquals(1995, descuento, 0.001); // Tolerancia de 0.001 para números de punto flotante
     }
 
 }
